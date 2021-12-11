@@ -90,7 +90,7 @@ fn spawn_signal(
     time: Res<Time>,
     mut timer: ResMut<OneSecondTimer>,
 ) {
-    let default_propagation = SignalPropagation (60.0);
+    let default_propagation = SignalPropagation(60.0);
     if timer.0.tick(time.delta()).just_finished() {
         for (intensity, position) in query.iter() {
             let signal_shape = shapes::Circle {
@@ -111,6 +111,18 @@ fn spawn_signal(
                 .insert(UsefulSignal(intensity.0 / 2.))
                 .insert(ChattingSignal(intensity.0 / 4.))
                 .insert(ToxicSignal(intensity.0 / 4.));
+        }
+    }
+}
+
+// Сигнал гаснет на некотором окружении от кружочка
+fn signal_extinction(
+    mut commands: Commands,
+    query: Query<(Entity, &SignalPropagation)>
+) {
+    for (entity, ppgtn) in query.iter() {
+        if ppgtn.0 > 2000. {
+            commands.entity(entity).despawn();
         }
     }
 }
@@ -142,5 +154,6 @@ fn main() {
         .add_startup_system(setup_system.system())
         .add_system(spawn_signal.system())
         .add_system(propagate_signal.system())
+        .add_system(signal_extinction.system())
         .run();
 }
